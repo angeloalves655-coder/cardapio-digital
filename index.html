@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Cardápio Digital</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 15px;
+      color: #333;
+    }
+
+    header {
+      text-align: center;
+      background: linear-gradient(135deg, #e63946, #d62828);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    header h1 { margin: 0 0 5px 0; font-size: 24px; }
+    header p { margin: 0; opacity: 0.9; font-size: 14px; }
+
+    h2 {
+      color: #1d3557;
+      border-bottom: 2px solid #e63946;
+      padding-bottom: 5px;
+      margin-top: 0;
+    }
+
+    .produto-card {
+      background: white;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .produto-principal {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .produto-img {
+      width: 85px;
+      height: 85px;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .produto-info { flex: 1; }
+    .produto-info h3 { margin: 0 0 4px 0; font-size: 16px; color: #1d3557; }
+    .produto-info p { margin: 0 0 6px 0; color: #666; font-size: 13px; line-height: 1.3; }
+    .preco { font-weight: bold; color: #2b9348; font-size: 15px; }
+
+    .obs-item-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      background-color: #fafafa;
+    }
+
+    .btn-adicionar {
+      background-color: #2b9348;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .carrinho {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      margin-top: 25px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      border-top: 4px solid #e63946;
+    }
+
+    .carrinho-lista {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 15px 0;
+    }
+
+    .carrinho-item {
+      padding: 10px 0;
+      border-bottom: 1px dashed #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .carrinho-item-obs {
+      font-size: 12px;
+      color: #d62828;
+      margin-top: 3px;
+      font-style: italic;
+    }
+
+    .btn-remover {
+      background: #e63946;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    .total-container {
+      font-size: 18px;
+      text-align: right;
+      margin-bottom: 15px;
+      color: #1d3557;
+    }
+
+    .campo-grupo { margin-bottom: 12px; }
+
+    .campo-grupo label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 4px;
+      font-size: 13px;
+      color: #495057;
+    }
+
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    textarea { resize: vertical; height: 60px; }
+
+    .btn-whatsapp {
+      width: 100%;
+      background-color: #25d366;
+      color: white;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(37,211,102,0.3);
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cabeçalho -->
+  <header>
+    <h1>🍔 Lanchonete do Zé</h1>
+    <p>Faça seu pedido online e receba rápido no WhatsApp!</p>
+  </header>
+
+  <!-- Lista de Produtos -->
+  <main>
+    <h2>Cardápio</h2>
+    <div id="produtos-container"></div>
+
+    <!-- Carrinho de Compras -->
+    <section class="carrinho">
+      <h2>Seu Pedido</h2>
+      <ul id="itens-carrinho" class="carrinho-lista">
+        <li style="color: #777;">Seu carrinho está vazio.</li>
+      </ul>
+      
+      <div class="total-container">
+        <strong>Total: R$ <span id="total">0,00</span></strong>
+      </div>
+
+      <!-- Formulário -->
+      <div class="campo-grupo">
+        <label for="nome-cliente">Seu Nome *</label>
+        <input type="text" id="nome-cliente" placeholder="Ex: João Silva">
+      </div>
+
+      <div class="campo-grupo">
+        <label for="tipo-pedido">Onde vai consumir? *</label>
+        <select id="tipo-pedido" onchange="toggleTipoPedido()">
+          <option value="Mesa">Comer no Local (Mesa)</option>
+          <option value="Entrega">Entrega / Delivery</option>
+        </select>
+      </div>
+
+      <!-- Campo de Mesa -->
+      <div class="campo-grupo" id="grupo-mesa">
+        <label for="numero-mesa">Número da Mesa *</label>
+        <input type="text" id="numero-mesa" placeholder="Ex: 1, 04 ou Balcão">
+      </div>
+
+      <!-- Campo de Endereço -->
+      <div class="campo-grupo" id="grupo-endereco" style="display: none;">
+        <label for="endereco-cliente">Endereço Completo para Entrega *</label>
+        <input type="text" id="endereco-cliente" placeholder="Rua, número, bairro e referência">
+      </div>
+
+      <div class="campo-grupo">
+        <label for="forma-pagamento">Forma de Pagamento *</label>
+        <select id="forma-pagamento" onchange="toggleTroco()">
+          <option value="">Selecione...</option>
+          <option value="Pix">Pix</option>
+          <option value="Cartão de Crédito">Cartão de Crédito</option>
+          <option value="Cartão de Débito">Cartão de Débito</option>
+          <option value="Dinheiro">Dinheiro</option>
+        </select>
+      </div>
+
+      <div class="campo-grupo" id="grupo-troco" style="display: none;">
+        <label for="troco-para">Precisa de troco para quanto?</label>
+        <input type="text" id="troco-para" placeholder="Ex: Troco para R$ 50,00">
+      </div>
+
+      <div class="campo-grupo">
+        <label for="obs-geral">Observações Gerais do Pedido</label>
+        <textarea id="obs-geral" placeholder="Ex: Capricha no molho, entregar no portão lateral, etc."></textarea>
+      </div>
+
+      <button onclick="enviarParaWhatsApp()" class="btn-whatsapp">
+        🚀 Enviar Pedido via WhatsApp
+      </button>
+    </section>
+  </main>
+
+  <script>
+    const produtos = [
+      { 
+        id: 1, 
+        nome: "X-Burguer Tradicional", 
+        preco: 22.00, 
+        desc: "Ingredientes: Pão brioche, hambúrguer artesanal 160g, cheddar fatiado, alface, tomate e maionese especial.",
+        imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80" 
+      },
+      { 
+        id: 2, 
+        nome: "Batata Frita Grande", 
+        preco: 15.00, 
+        desc: "Ingredientes: 300g de batata palito crocante, sequinha e temperada com sal fino.",
+        imagem: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=300&q=80" 
+      },
+      { 
+        id: 3, 
+        nome: "Coca-Cola Lata 350ml", 
+        preco: 6.00, 
+        desc: "Refrigerante lata super gelado.",
+        imagem: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=300&q=80" 
+      }
+    ];
+
+    let carrinho = [];
+    const TELEFONE_ESTABELECIMENTO = "5519994604562"; 
+
+    function renderizarProdutos() {
+      const container = document.getElementById("produtos-container");
+      container.innerHTML = "";
+
+      produtos.forEach(prod => {
+        container.innerHTML += `
+          <div class="produto-card">
+            <div class="produto-principal">
+              <img src="${prod.imagem}" alt="${prod.nome}" class="produto-img">
+              <div class="produto-info">
+                <h3>${prod.nome}</h3>
+                <p>${prod.desc}</p>
+                <span class="preco">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
+              </div>
+            </div>
+            <input type="text" id="obs-item-${prod.id}" class="obs-item-input" placeholder="Observação (ex: sem cebola, ponto da carne)...">
+            <button onclick="adicionarAoCarrinho(${prod.id})" class="btn-adicionar">+ Adicionar ao Pedido</button>
+          </div>
+        `;
+      });
+    }
+
+    function toggleTipoPedido() {
+      const tipo = document.getElementById("tipo-pedido").value;
+      document.getElementById("grupo-mesa").style.display = (tipo === "Mesa") ? "block" : "none";
+      document.getElementById("grupo-endereco").style.display = (tipo === "Entrega") ? "block" : "none";
+    }
+
+    function toggleTroco() {
+      const pagamento = document.getElementById("forma-pagamento").value;
+      document.getElementById("grupo-troco").style.display = (pagamento === "Dinheiro") ? "block" : "none";
+    }
+
+    function adicionarAoCarrinho(id) {
+      const prod = produtos.find(p => p.id === id);
+      const obsInput = document.getElementById(`obs-item-${id}`);
+
+      carrinho.push({
+        idUnico: Date.now() + Math.random(),
+        nome: prod.nome,
+        preco: prod.preco,
+        observacao: obsInput.value.trim()
+      });
+
+      obsInput.value = "";
+      atualizarCarrinho();
+    }
+
+    function removerDoCarrinho(idUnico) {
+      carrinho = carrinho.filter(item => item.idUnico !== idUnico);
+      atualizarCarrinho();
+    }
+
+    function atualizarCarrinho() {
+      const lista = document.getElementById("itens-carrinho");
+      const totalEl = document.getElementById("total");
+
+      if (carrinho.length === 0) {
+        lista.innerHTML = '<li style="color: #777;">Seu carrinho está vazio.</li>';
+        totalEl.innerText = "0,00";
+        return;
+      }
+
+      lista.innerHTML = "";
+      let total = 0;
+
+      carrinho.forEach(item => {
+        total += item.preco;
+        lista.innerHTML += `
+          <li class="carrinho-item">
+            <div>
+              <strong>${item.nome}</strong> - R$ ${item.preco.toFixed(2).replace('.', ',')}
+              ${item.observacao ? `<div class="carrinho-item-obs">Obs: ${item.observacao}</div>` : ''}
+            </div>
+            <button onclick="removerDoCarrinho(${item.idUnico})" class="btn-remover">Remover</button>
+          </li>
+        `;
+      });
+
+      totalEl.innerText = total.toFixed(2).replace('.', ',');
+    }
+
+    function enviarParaWhatsApp() {
+      const nome = document.getElementById("nome-cliente").value.trim();
+      const tipoPedido = document.getElementById("tipo-pedido").value;
+      const mesa = document.getElementById("numero-mesa").value.trim();
+      const endereco = document.getElementById("endereco-cliente").value.trim();
+      const formaPagamento = document.getElementById("forma-pagamento").value;
+      const trocoPara = document.getElementById("troco-para").value.trim();
+      const obsGeral = document.getElementById("obs-geral").value.trim();
+
+      if (carrinho.length === 0) {
+        alert("Adicione ao menos um item ao carrinho!");
+        return;
+      }
+
+      if (!nome) {
+        alert("Por favor, preencha o seu Nome.");
+        return;
+      }
+
+      if (tipoPedido === "Mesa" && !mesa) {
+        alert("Por favor, informe o Número da Mesa.");
+        return;
+      }
+
+      if (tipoPedido === "Entrega" && !endereco) {
+        alert("Por favor, informe o Endereço de Entrega.");
+        return;
+      }
+
+      if (!formaPagamento) {
+        alert("Por favor, selecione a Forma de Pagamento.");
+        return;
+      }
+
+      let resumoItens = "";
+      let total = 0;
+
+      carrinho.forEach(item => {
+        total += item.preco;
+        resumoItens += `• *1x ${item.nome}* — R$ ${item.preco.toFixed(2).replace('.', ',')}\n`;
+        if (item.observacao) {
+          resumoItens += `   └ *Obs:* ${item.observacao}\n`;
+        }
+      });
+
+      let detalhePagamento = formaPagamento;
+      if (formaPagamento === "Dinheiro" && trocoPara) {
+        detalhePagamento += ` (${trocoPara})`;
+      }
+
+      let mensagem = `🛒 *NOVO PEDIDO DE COMPRA*\n\n`;
+      mensagem += `👤 *Cliente:* ${nome}\n`;
+      
+      // AJUSTE REALIZADO AQUI: Adicionado o prefixo "Mesa " para sair legível no WhatsApp
+      mensagem += `📌 *Tipo:* ${tipoPedido === "Mesa" ? `Mesa ${mesa}` : `Entrega`}\n`;
+      
+      if (tipoPedido === "Entrega") {
+        mensagem += `📍 *Endereço:* ${endereco}\n`;
+      }
+      mensagem += `💳 *Pagamento:* ${detalhePagamento}\n`;
+
+      if (obsGeral) {
+        mensagem += `📝 *Obs do Pedido:* ${obsGeral}\n`;
+      }
+
+      mensagem += `\n--- *ITENS DO PEDIDO* ---\n${resumoItens}`;
+      mensagem += `\n💰 *TOTAL:* R$ ${total.toFixed(2).replace('.', ',')}`;
+
+      const urlWhatsApp = `https://api.whatsapp.com/send?phone=${TELEFONE_ESTABELECIMENTO}&text=${encodeURIComponent(mensagem)}`;
+      window.location.href = urlWhatsApp;
+    }
+
+    renderizarProdutos();
+  </script>
+</body>
+</html>
